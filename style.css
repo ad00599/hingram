@@ -26,6 +26,7 @@ body {
 /* Ẩn/hiện các View */
 .view { display: none; }
 .view.active { display: block; }
+.view.active.full-screen-flex { display: flex; } /* FIX: Căn giữa màn hình Đăng nhập/Đăng ký */
 .hidden { display: none !important; }
 
 /* Flexbox Full màn hình cho Login/Register */
