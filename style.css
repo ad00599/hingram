@@ -1,0 +1,135 @@
+:root {
+    /* Theme sáng mặc định */
+    --bg-color: #f8f9fa;
+    --container-bg: #ffffff;
+    --text-primary: #1c1e21;
+    --text-secondary: #65676B;
+    --border-color: #e4e6eb;
+    --primary-color: #333333;
+    --hover-color: #f0f2f5;
+    --btn-text: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    transition: background 0.3s ease;
+}
+
+/* Ẩn/hiện các View */
+.view { display: none; }
+.view.active { display: block; }
+.hidden { display: none !important; }
+
+/* Flexbox Full màn hình cho Login/Register */
+.full-screen-flex {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-box {
+    background: var(--container-bg);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid var(--border-color);
+}
+
+.auth-box h2 { text-align: center; margin-bottom: 20px; font-weight: 600; }
+.auth-box input {
+    width: 100%; padding: 12px; margin-bottom: 15px;
+    border: 1px solid var(--border-color); border-radius: 8px;
+    background: var(--bg-color); color: var(--text-primary);
+}
+.btn-primary {
+    width: 100%; padding: 12px; border: none; border-radius: 8px;
+    background: var(--primary-color); color: var(--btn-text);
+    font-weight: bold; cursor: pointer;
+}
+.btn-primary:hover { opacity: 0.9; }
+.switch-auth { text-align: center; margin-top: 15px; font-size: 14px; color: var(--text-secondary); }
+.switch-auth a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
+
+/* Header & Home */
+.app-header {
+    background: var(--container-bg); padding: 15px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky; top: 0; z-index: 10;
+}
+.profile-icon i { font-size: 32px; color: var(--text-secondary); cursor: pointer; }
+
+.feed-container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+
+.create-post-prompt {
+    background: var(--container-bg); padding: 15px;
+    border-radius: 12px; display: flex; align-items: center; gap: 15px;
+    border: 1px solid var(--border-color); margin-bottom: 20px; cursor: pointer;
+}
+.create-post-prompt i { font-size: 24px; color: var(--text-secondary); }
+.create-post-prompt span { color: var(--text-secondary); background: var(--bg-color); padding: 10px 20px; border-radius: 20px; flex: 1; }
+
+/* Bài viết */
+.post-card {
+    background: var(--container-bg); border-radius: 12px;
+    border: 1px solid var(--border-color); margin-bottom: 20px;
+}
+.post-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+.post-author-info { display: flex; gap: 10px; align-items: center; }
+.post-author-info i { font-size: 40px; color: var(--text-secondary); }
+.post-author-info small { color: var(--text-secondary); display: block; font-size: 12px; }
+.post-content { padding: 0 15px 15px; }
+.post-actions {
+    display: flex; border-top: 1px solid var(--border-color); padding: 5px;
+}
+.action-btn {
+    flex: 1; padding: 10px; background: transparent; border: none;
+    color: var(--text-secondary); cursor: pointer; font-weight: 600;
+    display: flex; justify-content: center; gap: 8px; align-items: center; border-radius: 6px;
+}
+.action-btn:hover { background: var(--hover-color); }
+
+/* Modals (Toàn màn hình) */
+.modal {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--container-bg); z-index: 100;
+}
+.modal.active { display: block; }
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px; border-bottom: 1px solid var(--border-color);
+}
+.btn-icon { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-primary); }
+.btn-primary-small { background: var(--primary-color); color: var(--btn-text); border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; }
+
+/* Rich text Editor */
+.rich-text-toolbar { padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; gap: 15px; background: var(--bg-color); }
+.rich-text-toolbar button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-secondary); }
+#post-editor { padding: 20px; min-height: 200px; outline: none; }
+#post-editor:empty:before { content: attr(placeholder); color: var(--text-secondary); }
+
+/* Profile Layout */
+.profile-layout { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+.avatar-section { position: relative; margin-bottom: 15px; }
+#profile-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); }
+.change-avatar-btn {
+    position: absolute; bottom: 0; right: 0; background: var(--bg-color);
+    border: 1px solid var(--border-color); border-radius: 50%; padding: 8px; cursor: pointer;
+}
+.profile-bio { margin: 15px 0; text-align: center; color: var(--text-secondary); }
+.social-links { display: flex; gap: 20px; font-size: 24px; margin-bottom: 30px; }
+.social-links i { color: var(--text-primary); cursor: pointer; }
+.btn-outline, .btn-danger { width: 100%; max-width: 300px; padding: 12px; margin-bottom: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
+.btn-danger { background: transparent; border: 1px solid #dc3545; color: #dc3545; }
