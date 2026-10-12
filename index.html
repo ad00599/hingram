@@ -3,146 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Social</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- FontAwesome cho icon -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase JS -->
+    <title>Hingram</title>
+    <!-- Tích hợp Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* CSS Tối giản, tông xám nhạt */
+        :root {
+            --bg-color: #f7f7f7;
+            --container-bg: #ffffff;
+            --text-main: #111111;
+            --text-muted: #666666;
+            --border-color: #e0e0e0;
+            --btn-bg: #333333;
+            --btn-text: #ffffff;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0; display: flex; justify-content: center;
+        }
+        .screen { display: none; width: 100%; max-width: 600px; min-height: 100vh; background: var(--container-bg); border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); }
+        .active { display: block; }
+        
+        /* Form Đăng nhập/Đăng ký */
+        .auth-container { padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        .auth-container h1 { margin-bottom: 30px; font-weight: 500; letter-spacing: 2px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); outline: none; }
+        button { width: 100%; padding: 12px; background: var(--btn-bg); color: var(--btn-text); border: none; border-radius: 6px; cursor: pointer; font-weight: 500; margin-bottom: 15px; }
+        .toggle-link { color: var(--text-muted); cursor: pointer; font-size: 14px; text-decoration: underline; }
+
+        /* Header & Trang chủ */
+        .header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--container-bg); }
+        .avatar-btn { width: 40px; height: 40px; border-radius: 50%; background: #ccc; cursor: pointer; }
+        .post-feed { padding: 20px; }
+        
+        /* Modal Toàn màn hình (Profile, Create Post) */
+        .fullscreen-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--container-bg); display: none; z-index: 1000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .modal-active { display: block; }
+        .close-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; width: auto;}
+    </style>
 </head>
 <body>
 
-    <!-- 1. GIAO DIỆN ĐĂNG NHẬP (Mặc định) -->
-    <div id="login-view" class="view active full-screen-flex">
-        <div class="auth-box">
-            <h2>Đăng nhập</h2>
-            <input type="email" id="login-email" placeholder="Email của bạn">
-            <input type="password" id="login-password" placeholder="Mật khẩu">
-            <button class="btn-primary" onclick="login()">Đăng nhập</button>
-            <p class="switch-auth">Bạn chưa có tài khoản? <a href="#" onclick="switchView('register-view')">Đăng ký</a></p>
+    <!-- Màn hình Xác thực -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <h1 id="auth-title">HINGRAM</h1>
+            <input type="text" id="display-name" placeholder="Tên hiển thị" style="display:none;">
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Mật khẩu">
+            <!-- Supabase hỗ trợ gửi OTP 6 số qua email. Form xác nhận OTP sẽ được JS gọi ra sau -->
+            <button id="auth-btn">Đăng nhập</button>
+            <span class="toggle-link" id="toggle-auth">Bạn chưa có tài khoản? Đăng ký</span>
         </div>
     </div>
 
-    <!-- 2. GIAO DIỆN ĐĂNG KÝ -->
-    <div id="register-view" class="view full-screen-flex">
-        <div class="auth-box" id="reg-step-1">
-            <h2>Đăng ký</h2>
-            <input type="text" id="reg-name" placeholder="Tên hiển thị">
-            <input type="email" id="reg-email" placeholder="Email">
-            <input type="password" id="reg-password" placeholder="Mật khẩu">
-            <input type="password" id="reg-password-confirm" placeholder="Xác nhận mật khẩu">
-            <button class="btn-primary" onclick="sendOTP()">Gửi mã xác minh</button>
-            <p class="switch-auth">Bạn đã có tài khoản? <a href="#" onclick="switchView('login-view')">Đăng nhập</a></p>
+    <!-- Màn hình Trang chủ -->
+    <div id="home-screen" class="screen">
+        <div class="header">
+            <div class="avatar-btn" onclick="openProfile()"></div>
+            <button style="width: auto; padding: 8px 15px; margin: 0;" onclick="openCreatePost()">Tạo bài viết</button>
         </div>
-        
-        <!-- Nhập mã OTP 6 số -->
-        <div class="auth-box hidden" id="reg-step-2">
-            <h2>Xác minh Email</h2>
-            <p>Nhập mã 6 chữ số đã được gửi đến email của bạn.</p>
-            <input type="text" id="reg-otp" maxlength="6" placeholder="------">
-            <button class="btn-primary" onclick="verifyRegister()">Hoàn tất đăng ký</button>
+        <div class="post-feed" id="feed">
+            <!-- Bài viết render ở đây -->
         </div>
     </div>
 
-    <!-- 3. GIAO DIỆN TRANG CHỦ -->
-    <div id="home-view" class="view">
-        <header class="app-header">
-            <!-- Icon profile góc trái -->
-            <div class="profile-icon" onclick="openProfileModal()">
-                <i class="fa-solid fa-circle-user"></i>
-            </div>
-            <h1>Trang chủ</h1>
-            <div></div> <!-- Space filler -->
-        </header>
-
-        <main class="feed-container">
-            <!-- Nút tạo bài viết -->
-            <div class="create-post-prompt" onclick="openCreatePostModal()">
-                <i class="fa-solid fa-circle-user"></i>
-                <span>Bạn đang nghĩ gì?</span>
-            </div>
-
-            <!-- Khu vực hiển thị bài viết -->
-            <div id="posts-feed">
-                <!-- Mẫu 1 bài viết -->
-                <div class="post-card">
-                    <div class="post-header">
-                        <div class="post-author-info">
-                            <i class="fa-solid fa-circle-user"></i>
-                            <div>
-                                <strong>Admin</strong>
-                                <small>Vừa xong</small>
-                            </div>
-                        </div>
-                        <i class="fa-solid fa-ellipsis post-options"></i>
-                    </div>
-                    <div class="post-content">
-                        Chào mừng đến với mạng xã hội tối giản!
-                    </div>
-                    <div class="post-actions">
-                        <button class="action-btn"><i class="fa-regular fa-heart"></i> Thích</button>
-                        <button class="action-btn"><i class="fa-regular fa-comment"></i> Bình luận</button>
-                        <button class="action-btn"><i class="fa-solid fa-share"></i> Chia sẻ</button>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- 4. GIAO DIỆN TẠO BÀI VIẾT (Toàn màn hình) -->
-    <div id="create-post-modal" class="modal">
-        <div class="modal-content full-screen-modal">
-            <div class="modal-header">
-                <button onclick="closeModal('create-post-modal')" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
-                <h3>Tạo bài viết</h3>
-                <button class="btn-primary-small" onclick="submitPost()">Đăng</button>
-            </div>
-            <!-- Thanh công cụ chỉnh sửa (Rich Text) -->
-            <div class="rich-text-toolbar">
-                <button onclick="document.execCommand('bold', false, null)"><i class="fa-solid fa-bold"></i></button>
-                <button onclick="document.execCommand('italic', false, null)"><i class="fa-solid fa-italic"></i></button>
-                <button onclick="document.execCommand('underline', false, null)"><i class="fa-solid fa-underline"></i></button>
-                <button class="upload-img-btn" onclick="document.getElementById('post-image-upload').click()">
-                    <i class="fa-solid fa-image"></i>
-                </button>
-                <input type="file" id="post-image-upload" hidden accept="image/*">
-            </div>
-            <!-- Vùng nhập văn bản có thể nhận dạng HTML -->
-            <div id="post-editor" contenteditable="true" placeholder="Bạn đang nghĩ gì?"></div>
-        </div>
-    </div>
-
-    <!-- 5. GIAO DIỆN TRANG CÁ NHÂN (Toàn màn hình) -->
-    <div id="profile-modal" class="modal">
-        <div class="modal-content full-screen-modal bg-light">
-            <div class="modal-header">
-                <button onclick="closeModal('profile-modal')" class="btn-icon"><i class="fa-solid fa-arrow-left"></i></button>
-                <h3>Trang cá nhân</h3>
-                <button class="btn-icon"><i class="fa-solid fa-gear"></i></button>
-            </div>
-            <div class="profile-layout">
-                <div class="avatar-section">
-                    <img src="default-avatar.png" id="profile-avatar" alt="Avatar">
-                    <button class="change-avatar-btn"><i class="fa-solid fa-camera"></i></button>
-                </div>
-                <h2 class="profile-name">Tên người dùng</h2>
-                <p class="profile-id">@userid</p>
-                <p class="profile-bio">Mô tả bản thân (Bio)...</p>
-                
-                <div class="social-links">
-                    <i class="fa-brands fa-facebook"></i>
-                    <i class="fa-brands fa-instagram"></i>
-                    <i class="fa-brands fa-github"></i>
-                </div>
-
-                <div class="profile-settings">
-                    <button class="btn-outline" onclick="toggleTheme()">Sáng / Tối / Tự động</button>
-                    <button class="btn-danger" onclick="logout()">Đăng xuất</button>
-                </div>
+    <!-- Modal Trang cá nhân -->
+    <div id="profile-modal" class="fullscreen-modal">
+        <button class="close-btn" onclick="closeModals()">✕</button>
+        <div style="text-align: center; margin-top: 50px;">
+            <div style="width: 100px; height: 100px; border-radius: 50%; background: #ccc; margin: 0 auto 20px;"></div>
+            <button style="width: auto; padding: 5px 10px; font-size: 12px;">Đổi ảnh</button>
+            <h2>Tên người dùng</h2>
+            <p class="text-muted">@id_nguoidung</p>
+            <p>Bio của người dùng ở đây...</p>
+            <div style="margin: 30px 0;">
+                <button style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color);">Tùy chỉnh Giao diện</button>
+                <button onclick="logout()" style="background: #ff4d4f; color: white;">Đăng xuất</button>
             </div>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- Modal Tạo bài viết -->
+    <div id="create-post-modal" class="fullscreen-modal">
+        <button class="close-btn" onclick="closeModals()">✕</button>
+        <div style="margin-top: 50px;">
+            <h3>Tạo bài viết mới</h3>
+            <!-- Rich text editor đơn giản bằng contenteditable -->
+            <div style="margin-bottom: 10px;">
+                <button style="width: auto; display: inline; padding: 5px;" onclick="document.execCommand('bold')"><b>B</b></button>
+                <button style="width: auto; display: inline; padding: 5px;" onclick="document.execCommand('italic')"><i>I</i></button>
+            </div>
+            <div contenteditable="true" id="post-content" style="min-height: 150px; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; outline: none; margin-bottom: 15px;"></div>
+            <input type="file" id="post-image" accept="image/*" style="border:none; padding:0;">
+            <button onclick="submitPost()">Đăng bài</button>
+        </div>
+    </div>
+
+    <script>
+        // Chuyển đổi Đăng nhập / Đăng ký UI
+        let isLogin = true;
+        document.getElementById('toggle-auth').addEventListener('click', () => {
+            isLogin = !isLogin;
+            document.getElementById('display-name').style.display = isLogin ? 'none' : 'block';
+            document.getElementById('auth-btn').innerText = isLogin ? 'Đăng nhập' : 'Đăng ký';
+            document.getElementById('toggle-auth').innerText = isLogin ? 'Bạn chưa có tài khoản? Đăng ký' : 'Bạn đã có tài khoản? Đăng nhập';
+        });
+
+        // Điều hướng Modal
+        function openProfile() { document.getElementById('profile-modal').classList.add('modal-active'); }
+        function openCreatePost() { document.getElementById('create-post-modal').classList.add('modal-active'); }
+        function closeModals() {
+            document.getElementById('profile-modal').classList.remove('modal-active');
+            document.getElementById('create-post-modal').classList.remove('modal-active');
+        }
+
+        // Logic Supabase sẽ viết ở đây
+        // const supabaseUrl = 'YOUR_SUPABASE_URL';
+        // const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        // const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
 </body>
 </html>
